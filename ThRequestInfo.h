@@ -46,8 +46,9 @@ class ThRequestInfo
 		
 		void setCurrentSessionRS(Session* _session) 
 		{ 
-			std::lock_guard<std::mutex> lock(InfoMutex); 
-			xSessionRS = _session;	
+			std::lock_guard<std::mutex> lock(InfoMutex);
+            if(_session != nullptr)
+			xSessionRS = _session;
 		}
 		
 //		Terminal_Info_List* getTerminalList() 

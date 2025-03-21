@@ -355,7 +355,7 @@ void thClientConnect::Execute()
 
 
 // Set connection soket
-void thClientConnect::setSocket(const char* host, unsigned short port, unsigned int address) {
+void thClientConnect::setSocket(const char* host, const unsigned short port, const unsigned int address) {
 	std::lock_guard<std::mutex> lock(mtx); 	
 	if(host == nullptr) { return; }
 	if(port <= 0 ) { return; }
@@ -373,7 +373,8 @@ void thClientConnect::setSocket(const char* host, unsigned short port, unsigned 
 }
 // 
 void thClientConnect::setUser(const char* _user, const char* _pass){
-    setUsermtx.lock();
+    std::lock_guard<std::mutex> lock(mtx);
+//    setUsermtx.lock();
     // Обнуляем массивы перед копированием
     std::memset(ConnectHandler->pxConnectionAttr->cUser, 0, SERVER_CONN_ATTR_TEXT_MAX_SIZE);
     std::memset(ConnectHandler->pxConnectionAttr->cPass, 0, SERVER_CONN_ATTR_TEXT_MAX_SIZE);
@@ -387,7 +388,7 @@ void thClientConnect::setUser(const char* _user, const char* _pass){
     std::strncpy(ConnectHandler->pxConnectionAttr->cPass, _pass, passLength);
     ConnectHandler->pxConnectionAttr->cPass[passLength] = '\0'; // Завершающий ноль
 
-    setUsermtx.unlock();
+//    setUsermtx.unlock();
 }
 
 // 
@@ -419,50 +420,7 @@ str_SGP2_ML_Message* thClientConnect::getMessageError() {
 // Принимаем сразу указатель на сессию
 void thClientConnect::setSession(Session* _session) 
 {
-////	mtx.lock();  // Блокируем мьютекс
-    std::lock_guard<std::mutex> lock(mtx);  // Автоматическая блокировка и разблокировка мьютекса
-//	try {
-//        if (_session == nullptr) {
-//            Logger::log(Logger::LogLevel::log_ERROR, "TASK_BASE | SESSION | nullptr");
-//            return;
-//        }
-//
-//        std::string _host    = _session->getHost();
-//        unsigned short _port = _session->getPort();
-//        unsigned int _id     = _session->getAddress();
-//        std::string _user    = _session->getUser();
-//        std::string _pass    = _session->getPass();
-//
-//        // Проверка на пустой хост
-//        if (_host.empty()) {
-//            Logger::log(Logger::LogLevel::log_ERROR, "Host cannot be empty");
-//            return;
-//        }
-//
-//        // Проверка на корректный диапазон порта
-//        if (_port == 0 || _port > 65535) {
-//            Logger::log(Logger::LogLevel::log_ERROR, "Port must be in the range 1-65535");
-//            return;
-//        }
-//
-//        // Проверка на пустые имя пользователя и пароль
-//        if (_user.empty() || _pass.empty()) {
-//            Logger::log(Logger::LogLevel::log_ERROR, "Username and password cannot be empty");
-//            return;
-//        }
-////		mtx.unlock();
-//        // Логика загрузки сессии
-//        setSocket(_host.c_str(), _port, _id);
-//        setUser(_user.c_str(), _pass.c_str());
-//	}
-//	catch (...) {
-//    	Logger::log(Logger::LogLevel::log_ERROR, "An error occurred while setting the session.");
-////    	mtx.unlock();
-//	}
-//
-//	// Разблокируем мьютекс после обработки
-////	mtx.unlock();
-
+	mtx.lock();  // Блокируем мьютекс
     try {
         if (_session == nullptr) {
             Logger::log(Logger::LogLevel::log_ERROR, "TASK_BASE | SESSION | nullptr");
@@ -493,6 +451,7 @@ void thClientConnect::setSession(Session* _session)
             return;
         }
 
+        mtx.unlock();
         // Логика загрузки сессии
         setSocket(_host.c_str(), _port, _id);
         setUser(_user.c_str(), _pass.c_str());
@@ -502,6 +461,7 @@ void thClientConnect::setSession(Session* _session)
     }
     catch (...) {
         Logger::log(Logger::LogLevel::log_ERROR, "An unknown error occurred while setting the session.");
+        mtx.unlock();
     }
 
 }

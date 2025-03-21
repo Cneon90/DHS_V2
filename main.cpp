@@ -1,5 +1,20 @@
 #include "main.h"
 
+//-----http-server------------
+void start_http_server() {
+
+    crow::SimpleApp app;
+
+    CROW_ROUTE(app, "/")([](){
+        return "Hello, kirill!";
+    });
+
+    app.loglevel(crow::LogLevel::Error);
+    app.port(18080).multithreaded().run();
+}
+//---------------
+
+
 
 int main(int argc, char** argv) 
 {
@@ -235,8 +250,9 @@ int main(int argc, char** argv)
 //	
 
 
-	
-	
+    // Запускаем HTTP сервер в отдельном потоке
+    std::thread http_thread(start_http_server);
+
 		
 	//=== Input command ============
 	for (;;)
@@ -259,11 +275,12 @@ int main(int argc, char** argv)
 		
 		 if (strcmp(cBuf, "Exit") == 0 || cBuf[0] == 'e' || cBuf[0] == 'E') {
             printf("  Exit\n");
+            http_thread.join();
             return 0;
         }
 		//============================================================= 
 	}
 
-	
+    http_thread.join();
 	return 0;
 }
