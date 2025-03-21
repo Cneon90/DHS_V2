@@ -3,7 +3,7 @@
 
 #include <iostream>
 #include <cstring>
-#include <unistd.h> 
+//#include <unistd.h>
 
 
 #if _WIN32

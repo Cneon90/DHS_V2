@@ -2,7 +2,7 @@
 #define GETFILESPORT_H
 
 #include <iostream>
-#include <dirent.h>
+#include <direct.h>
 #include <cstring>
 #include <vector>
 

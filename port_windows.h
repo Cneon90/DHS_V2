@@ -4,11 +4,12 @@
                                    INCLUDES
 *******************************************************************************/
 #include <stdio.h>
-#include <unistd.h>
+//#include <unistd.h>
 #include <signal.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <semaphore.h>
+//#include <semaphore.h>
+#include <direct.h>
 
 	#include <winsock2.h>
 	#include <windows.h>

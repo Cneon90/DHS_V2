@@ -49,10 +49,8 @@ void ThRequestInfo::thWaitForCompletion() {
 
 void ThRequestInfo::StartExecute()
 {
-	
-	
-	while(!Terminated)
-	{
+    while(!Terminated)
+    {
 		vPortSleepMs(20); /*20*/
 //		std::unique_lock<std::mutex> lock(InfoMutex); 
 		std::lock_guard<std::mutex> lock(InfoMutex);

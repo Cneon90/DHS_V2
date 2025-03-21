@@ -420,6 +420,7 @@ enSgDialogItemType TSgDialog::getTypeByID(int id)
 std::string TSgDialog::getTypeLabel(int id)
 {
 //   return getTypeLabel(getTypeByID(id));
+    return "";
 }
 
 // Возвращаем имя по ID
@@ -622,7 +623,7 @@ std::string TSgDialog::getTypeLabel(enSgDialogItemType _type)
 
 int TSgDialog::getDialogByQustionID(int questionID)
 {
-
+    return 0;
 }
 
 // Получаем ID вопроса из Item

@@ -1,7 +1,7 @@
 #ifndef RELAYSERVERS_H
 #define RELAYSERVERS_H
 
-#include <pthread.h>
+//#include <pthread.h>
 #include <thread>
 #include <mutex>
 

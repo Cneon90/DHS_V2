@@ -2,7 +2,7 @@
 #define DIALOGAPI_H
 
 #include <iostream>
-#include <dirent.h>
+//#include <dirent.h>
 #include <cstring>
 #include <vector>
 

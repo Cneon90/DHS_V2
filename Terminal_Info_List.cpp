@@ -24,26 +24,25 @@ Terminal_Info_List::Terminal_Info_List()
 
 // Add or update
 void Terminal_Info_List::Add(Terminal_Info_Item& newItem) { 
-    // ѕеребираем список
-	dataMutex.lock();
+//     ѕеребираем список
+    // »спользуем std::lock_guard дл€ автоматического управлени€ мьютексом
+    std::lock_guard<std::mutex> guard(dataMutex);
+
     for (auto& item : *terminalInfoList) {
         if (item.ID == newItem.ID) {
-            
             // update
             item.EXTDBID = newItem.EXTDBID;
             std::strcpy(item.TNAME, newItem.TNAME);
             item.RALG = newItem.RALG;
             std::strcpy(item.STATUS, newItem.STATUS);
             std::strcpy(item.SW_INFO, newItem.SW_INFO);
-            dataMutex.unlock();
-            
+
             return; // Ёлемент обновлен, выходим из функции
         }
     }
 
-	// add	
-	terminalInfoList -> push_back(newItem);	
-	dataMutex.unlock();
+    // add
+    terminalInfoList->push_back(newItem);
 }
 
 // Clear list

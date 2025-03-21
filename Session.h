@@ -24,12 +24,15 @@ public:
     void setUser(const std::string& user, const std::string& pass) {
         std::lock_guard<std::mutex> lock(tasksMutex);
 
-        // Копируем строки в массивы cUser и cPass с безопасным ограничением по размеру
-        std::copy(user.c_str(), user.c_str() + std::min(user.size(), static_cast<size_t>(SERVER_CONN_ATTR_TEXT_MAX_SIZE - 1)), cUser);
-        cUser[SERVER_CONN_ATTR_TEXT_MAX_SIZE - 1] = '\0';
+        // Копируем строку user в массив cUser с ограничением по размеру
+        size_t userLength = min(user.size(), static_cast<size_t>(SERVER_CONN_ATTR_TEXT_MAX_SIZE));
+        std::copy(user.c_str(), user.c_str() + userLength, cUser);
+        cUser[userLength] = '\0';  // Ставим \0 сразу после окончания строки
 
-        std::copy(pass.c_str(), pass.c_str() + std::min(pass.size(), static_cast<size_t>(SERVER_CONN_ATTR_TEXT_MAX_SIZE - 1)), cPass);
-        cPass[SERVER_CONN_ATTR_TEXT_MAX_SIZE - 1] = '\0';
+        // Копируем строку pass в массив cPass с ограничением по размеру
+        size_t passLength = min(pass.size(), static_cast<size_t>(SERVER_CONN_ATTR_TEXT_MAX_SIZE));
+        std::copy(pass.c_str(), pass.c_str() + passLength, cPass);
+        cPass[passLength] = '\0';  // Ставим \0 сразу после окончания строки
     }
 
     void setSocket(const std::string& host, unsigned short port, unsigned int address) {
@@ -42,12 +45,16 @@ public:
 
     std::string getUser() {
         std::lock_guard<std::mutex> lock(tasksMutex);
-        return std::string(cUser);
+        // Находим первый нулевой символ в cUser
+        size_t length = strlen(cUser);  // Вычисляем длину строки без учета нулевого символа
+        return std::string(cUser, length);  // Возвращаем строку, обрезанную до первого \0
     }
 
     std::string getPass() {
         std::lock_guard<std::mutex> lock(tasksMutex);
-        return std::string(cPass);
+        // Находим первый нулевой символ в cUser
+        size_t length = strlen(cPass);  // Вычисляем длину строки без учета нулевого символа
+        return std::string(cPass, length);  // Возвращаем строку, обрезанную до первого \0
     }
 
     unsigned short getPort() {

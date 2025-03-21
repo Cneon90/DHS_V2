@@ -10,9 +10,9 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <dirent.h>
-#include <pthread.h>
-#include <sched.h>
+//#include <dirent.h>
+//#include <pthread.h>
+//#include <sched.h>
 #include <ctime>
 #include <iostream>
 #include <future>

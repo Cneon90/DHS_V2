@@ -92,16 +92,16 @@ int MonitoringLinux::CPULoad() {
 
 
 SIZE_T  MonitoringLinux::RAMTotal() {
-	
+	return 0;
 }
 
 
 SIZE_T  MonitoringLinux::RAMFree() {
-	
+    return 0;
 }
 
 SIZE_T  MonitoringLinux::RAMUsed() {
-	
+    return 0;
 }
 
 

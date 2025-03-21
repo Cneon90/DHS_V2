@@ -37,17 +37,17 @@ void GetFilesWin::Scan(std::string FPath)
 //Linux
 void GetFilesLinux::Scan(std::string FPath)
 {
-    DIR* dir = opendir(FPath.c_str());
-    if (dir == nullptr) {
-        std::cerr << "Error opening directory: " << strerror(errno) << std::endl;
-        return;
-    }
-
-    struct dirent* entry;
-    fsList->clear();
-    while ((entry = readdir(dir)) != nullptr) {
-		fsList->push_back(entry->d_name);
-    }
-
-    closedir(dir);
+//    DIR* dir = opendir(FPath.c_str());
+//    if (dir == nullptr) {
+//        std::cerr << "Error opening directory: " << strerror(errno) << std::endl;
+//        return;
+//    }
+//
+//    struct dirent* entry;
+//    fsList->clear();
+//    while ((entry = readdir(dir)) != nullptr) {
+//		fsList->push_back(entry->d_name);
+//    }
+//
+//    closedir(dir);
 }

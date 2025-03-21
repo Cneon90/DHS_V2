@@ -5,11 +5,11 @@ int main(int argc, char** argv)
 {
 	int i;
 	char cBuf[CMD_BUF_SIZE];
-	
+
 	//=== Logger =====
 	try{
 		Logger::copyFormattedDateToArray(cLogDir, sizeof(cLogDir));
-		vPortCreateDirectory(cLogDir);	
+		vPortCreateDirectory(cLogDir);
 		std::string filePath = std::string(cLogDir) + "\\Init.log";		
 	
 		if (!Logger::initialize(filePath)) {
@@ -127,7 +127,7 @@ int main(int argc, char** argv)
 
 //======== Dialogs =========================
  	// Устанавливаем кодировку консоли в UTF-8
-    SetConsoleOutputCP(1251);	
+    SetConsoleOutputCP(1251);
 	/*Dialog directory scan*/
 	TQuestList* QuestFileFind = new TQuestList();	
 //	QuestFileFind->setPollingTime(QUESTIONS_POLLING_TIME);	

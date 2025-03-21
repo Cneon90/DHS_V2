@@ -4,12 +4,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <vector>
-#include <pthread.h>
+//#include <pthread.h>
 #include <thread>
 #include <mutex>
 #include <string.h>
-#include <dirent.h>
-#include <sched.h>
+//#include <dirent.h>
+//#include <sched.h>
 #include <time.h>
 #include <iostream>
 

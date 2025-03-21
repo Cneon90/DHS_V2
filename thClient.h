@@ -21,10 +21,11 @@
 #include <thread>
 #include <mutex>
 
-#include <string.h>
-#include <dirent.h>
+//#include <string.h>
+#include <cstring>  // Äëÿ memcpy
+//#include <dirent.h>
 //#include <pthread.h>
-#include <sched.h>
+//#include <sched.h>
 #include <time.h>
 
 

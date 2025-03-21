@@ -92,10 +92,17 @@ void vServerClientRequestMessage (void* pvCB_Arg, char* pcUserName, const str_SG
 				
 				//Get param session 
 				char* User = reinterpret_cast<char*>(pxSrcRequestMessage->pcData);
+                size_t length = strlen(User);  // Находим длину строки
+                User[length] = '\0';           // Добавляем нулевой символ в конец строки
+
 				unsigned char* nextData = pxSrcRequestMessage->pcData + std::strlen(User) + 1;
 				char* Password = reinterpret_cast<char*>(nextData);
+                size_t lengthP = strlen(Password);  // Находим длину строки
+                Password[lengthP] = '\0';           // Добавляем нулевой символ в конец строки
 				nextData = nextData + std::strlen(Password) + 1;
 				char* Host = reinterpret_cast<char*>(nextData);
+                size_t lengthH = strlen(Host);  // Находим длину строки
+                Host[lengthH] = '\0';           // Добавляем нулевой символ в конец строки
 				// Port
 				nextData = nextData + std::strlen(Host) + 1;
 				unsigned short Port = *reinterpret_cast<unsigned short*>(nextData);
@@ -206,7 +213,7 @@ void vServerClientRequestMessage (void* pvCB_Arg, char* pcUserName, const str_SG
 					_taskDS = new TaskConnect();
 				} else { 
 //					Logger::log(Logger::LogLevel::log_DEBUG, "GET | Existing Instans / CMD_TERMS");
-					_taskDS = static_cast<TaskConnect*>(taskBasePtr);
+					_taskDS = dynamic_cast<TaskConnect*>(taskBasePtr);
 				}	
 				
 				if (! _taskDS) { // Если это не TaskConnect
@@ -637,7 +644,7 @@ void vServerClientRequestMessage (void* pvCB_Arg, char* pcUserName, const str_SG
 			}
 			
 			// Вычисляем фактическое количество терминалов
-			int factCount = std::min(ReqCount, listCount - StartIndex);
+			int factCount = min(ReqCount, listCount - StartIndex);
 			Logger::log(Logger::LogLevel::log_DEBUG, "TERMINAL LIST | factCount = %d |", factCount);
 		 
 		  	try{
@@ -941,7 +948,7 @@ vsServer::vsServer(int port) : port(port), running(false) {
 vsServer::~vsServer() {
 	delete FSessionDS;
     stop();
-    close(serverSocket);
+//    close(serverSocket);
 }
 
 void vsServer::StartListening() 
@@ -1023,7 +1030,7 @@ void vsServer::acceptConnections() {
             vPortSetSocketSendTimeout(clientSocket, DEFALUT_SOCKET_SEND_TIMEOUT_MS);
         } catch (const std::exception& e) {
             Logger::log(Logger::LogLevel::log_INFO, "Accept sock - %d, error: %s", clientSocket, e.what());
-            close(clientSocket); // Закрыть сокет в случае ошибки
+//            close(clientSocket); // Закрыть сокет в случае ошибки
             continue;
         }
 
@@ -1035,7 +1042,7 @@ void vsServer::acceptConnections() {
                 Logger::log(Logger::LogLevel::log_INFO, "5. EXIT! sock - %d ", clientSocket);
             } catch (const std::exception& e) {
                 Logger::log(Logger::LogLevel::log_ERROR, "emplace_back! sock - %d, error: %s", clientSocket, e.what());
-                close(clientSocket); // Закрыть сокет в случае ошибки
+//                close(clientSocket); // Закрыть сокет в случае ошибки
             }
         } else {
             Logger::log(Logger::LogLevel::log_ERROR, "Fatal sock - %d ", clientSocket);
@@ -1043,7 +1050,7 @@ void vsServer::acceptConnections() {
     }
     
     Logger::log(Logger::LogLevel::log_ERROR, "Error Exit");
-    close(clientSocket); // Закрыть сокет в случае ошибки
+//    close(clientSocket); // Закрыть сокет в случае ошибки
 }
 
 

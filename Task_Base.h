@@ -336,12 +336,18 @@ class TaskBaseConnect
 	// set User	
 	void setUser(const std::string& user, const std::string& pass) {
 		std::unique_lock<std::mutex> lock(tasksMutex);
-	
-		std::strncpy(cUser, user.c_str(), SERVER_CONN_ATTR_TEXT_MAX_SIZE - 1);
-		cUser[SERVER_CONN_ATTR_TEXT_MAX_SIZE - 1] = '\0'; // Убедимся, что строка нуль-терминирована
-		
-		std::strncpy(cPass, pass.c_str(), SERVER_CONN_ATTR_TEXT_MAX_SIZE - 1);
-		cPass[SERVER_CONN_ATTR_TEXT_MAX_SIZE - 1] = '\0'; // Убедимся, что строка нуль-терминирована
+        // Очистка массивов перед копированием
+        std::memset(cUser, 0, SERVER_CONN_ATTR_TEXT_MAX_SIZE);
+        std::memset(cPass, 0, SERVER_CONN_ATTR_TEXT_MAX_SIZE);
+
+        // Копируем строки с учетом их длины, гарантируя, что они будут правильно завершены нулем
+        size_t userLength = min(user.size(), static_cast<size_t>(SERVER_CONN_ATTR_TEXT_MAX_SIZE - 1));
+        std::memcpy(cUser, user.c_str(), userLength);
+        cUser[userLength] = '\0';  // Завершающий ноль
+
+        size_t passLength = min(pass.size(), static_cast<size_t>(SERVER_CONN_ATTR_TEXT_MAX_SIZE - 1));
+        std::memcpy(cPass, pass.c_str(), passLength);
+        cPass[passLength] = '\0';  // Завершающий ноль
 	}
 	
 	// set Socket
@@ -363,50 +369,51 @@ class TaskBaseConnect
 	}
 	
 //	// Принимаем сразу указатель на сессию
-	void setSession(Session* _session) 
+	void setSession(Session* _session)
 	{
-		tasksMutex.lock();  // Блокируем мьютекс
-    	try {
-	        if (_session == nullptr) { 
-	            Logger::log(Logger::LogLevel::log_ERROR, "TASK_BASE | SESSION | nullptr");
-	            return;
-	        }
-	
-	        std::string _host    = _session->getHost();
-	        unsigned short _port = _session->getPort();
-	        unsigned int _id     = _session->getAddress();
-	        std::string _user    = _session->getUser();
-	        std::string _pass    = _session->getPass();
-	
-	        // Проверка на пустой хост
-	        if (_host.empty()) {
-	            Logger::log(Logger::LogLevel::log_ERROR, "Host cannot be empty");
-	            return;
-	        }
-	
-	        // Проверка на корректный диапазон порта
-	        if (_port == 0 || _port > 65535) {
-	            Logger::log(Logger::LogLevel::log_ERROR, "Port must be in the range 1-65535");
-	            return;
-	        }
-	
-	        // Проверка на пустые имя пользователя и пароль
-	        if (_user.empty() || _pass.empty()) {
-	            Logger::log(Logger::LogLevel::log_ERROR, "Username and password cannot be empty");
-	            return;
-	        }
-			tasksMutex.unlock();
-	        // Логика загрузки сессии
-	        setSocket(_host, _port, _id);
-	        setUser(_user, _pass);
-    	}
-    	catch (...) {
-        	Logger::log(Logger::LogLevel::log_ERROR, "An error occurred while setting the session.");
-        	tasksMutex.unlock();
-    	}
+        std::lock_guard<std::mutex> lock(tasksMutex);  // Автоматическая блокировка и разблокировка мьютекса
+        try {
+            if (_session == nullptr) {
+                Logger::log(Logger::LogLevel::log_ERROR, "TASK_BASE | SESSION | nullptr");
+                return;
+            }
 
-    	// Разблокируем мьютекс после обработки
-    	tasksMutex.unlock();
+            std::string _host = _session->getHost();
+            unsigned short _port = _session->getPort();
+            unsigned int _id = _session->getAddress();
+            std::string _user = _session->getUser();
+            std::string _pass = _session->getPass();
+
+            // Проверка на пустой хост
+            if (_host.empty()) {
+                Logger::log(Logger::LogLevel::log_ERROR, "Host cannot be empty");
+                return;
+            }
+
+            // Проверка на корректный диапазон порта
+            if (_port == 0 || _port > 65535) {
+                Logger::log(Logger::LogLevel::log_ERROR, "Port must be in the range 1-65535");
+                return;
+            }
+
+            // Проверка на пустые имя пользователя и пароль
+            if (_user.empty() || _pass.empty()) {
+                Logger::log(Logger::LogLevel::log_ERROR, "Username and password cannot be empty");
+                return;
+            }
+
+            // Логика загрузки сессии
+            setSocket(_host, _port, _id);
+            setUser(_user, _pass);
+        }
+        catch (const std::exception& e) {
+            // Логирование конкретного типа исключения
+//            Logger::log(Logger::LogLevel::log_ERROR, "An error occurred while setting the session: "   string(e.what()));
+        }
+        catch (...) {
+            // Логирование, если произошло не предусмотренное исключение
+            Logger::log(Logger::LogLevel::log_ERROR, "An unknown error occurred while setting the session.");
+        }
 	}
 
 
