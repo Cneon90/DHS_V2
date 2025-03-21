@@ -6,7 +6,6 @@ Session* SessionRSLoad()
 	std::vector<TRelayServer> records = RSHandler::readAllFromFile(RS_SERVERS_FILE_NAME);
 	Session* _sesRS = new Session();
 	
-	
 	if(records.size() == 0) {
 		Logger::log(Logger::LogLevel::log_ERROR, "NOT RS RECORDS");
 		return nullptr;
@@ -20,7 +19,9 @@ Session* SessionRSLoad()
 	unsigned int _id 	 = _rs.getAddress();
 	std::string _user 	 = _rs.getUser();
 	std::string _pass 	 = _rs.getPass();
-	
+
+//    Logger::log(Logger::LogLevel::log_DEBUG, "Session load: user: %s, pass:%s, host:%s, port:%d", _user.c_str(), _pass.c_str(), _host.c_str(), _port  );
+
 	_sesRS->setSocket(_host, _port, _id);
 	_sesRS->setUser(_user, _pass);  
 	
@@ -32,11 +33,8 @@ Session* SessionRSLoad()
 // Получаем из файла и кэшуруем, если уже есть, то отдаем, то что в памяти
 bool Fill_Task(TaskBaseConnect* _task, Session* _session) 
 {
-//	if(_session == nullptr) {
-//		_session = SessionRSLoad();	
-//	}
-	
-	if(_session == nullptr) { 
+	if(_session == nullptr) {
+
 		return false;	
 	}
 	
@@ -46,7 +44,7 @@ bool Fill_Task(TaskBaseConnect* _task, Session* _session)
 		unsigned int     _id = _session->getAddress();
 		std::string    _user = _session->getUser();
 		std::string    _pass = _session->getPass();			
-		
+
 		_task->setSocket(_host, _port, _id);
 		_task->setUser(_user, _pass); 	
 	} catch(...) { 
@@ -88,8 +86,8 @@ void vServerClientRequestMessage (void* pvCB_Arg, char* pcUserName, const str_SG
 	if(pxSrcRequestMessage->usCmd == CMD_SES) {
 		try{
 			if ((pxSrcRequestMessage->ucPar == 0x00) && (pxSrcRequestMessage->usDataSize > 0)) {
-				std::unique_lock<std::mutex> lock(_server->xMessageMutex); 
-				
+				std::unique_lock<std::mutex> lock(_server->xMessageMutex);
+                Logger::log(Logger::LogLevel::log_DEBUG, "SESSION | START ENTER  |  " );
 				//Get param session 
 				char* User = reinterpret_cast<char*>(pxSrcRequestMessage->pcData);
                 size_t length = strlen(User);  // Находим длину строки
@@ -125,7 +123,7 @@ void vServerClientRequestMessage (void* pvCB_Arg, char* pcUserName, const str_SG
 					usSGP2_ML_MessagePutByte(pxDstResponseMessage, 0xE4);
 				    return;
 				}
-
+                Logger::log(Logger::LogLevel::log_DEBUG, "SESSION | SET SETTING |  " );
 				// Save attr Session
 				_sessionDS->setSocket(Host, Port, id);
 				_sessionDS->setUser(User, Password);
@@ -146,7 +144,7 @@ void vServerClientRequestMessage (void* pvCB_Arg, char* pcUserName, const str_SG
 				TaskConnect* _taskDS = nullptr;	
 			
 				if(taskBasePtr == nullptr) { // Если не получили экземпляр, создаем свой
-//					Logger::log(Logger::LogLevel::log_DEBUG, "GET | nullptr | new Instans / CMD_SES");
+//					Logger::log(Logger::LogLevel::log_DEBUG, "GET | nullptr | new Instan / CMD_SES");
 					_taskDS = new TaskConnect();
 				} else { 
 					_taskDS = static_cast<TaskConnect*>(taskBasePtr);
@@ -201,8 +199,8 @@ void vServerClientRequestMessage (void* pvCB_Arg, char* pcUserName, const str_SG
 	// Получение списка терминалов с DS сервера
 	if(pxSrcRequestMessage->usCmd == CMD_TERM_LIST_DS) {
 		if ((pxSrcRequestMessage->ucPar == 0x00) && (pxSrcRequestMessage->usDataSize > 0)) {
-			std::unique_lock<std::mutex> lock(_server->xMessageMutex); 
-
+			std::unique_lock<std::mutex> lock(_server->xMessageMutex);
+            Logger::log(Logger::LogLevel::log_DEBUG, "CMD_TERM_LIST_DS | START ENTER  |  " );
 			try {
 				// Получаем указатель 
 				TaskaBase* taskBasePtr = _tasksList->getTaskInstance(_clSocket, pxSrcRequestMessage);
@@ -213,7 +211,7 @@ void vServerClientRequestMessage (void* pvCB_Arg, char* pcUserName, const str_SG
 					_taskDS = new TaskConnect();
 				} else { 
 //					Logger::log(Logger::LogLevel::log_DEBUG, "GET | Existing Instans / CMD_TERMS");
-					_taskDS = dynamic_cast<TaskConnect*>(taskBasePtr);
+					_taskDS = dynamic_cast<TaskConnect*>(taskBasePtr);// dynamic_cast<TaskConnect*>(taskBasePtr);
 				}	
 				
 				if (! _taskDS) { // Если это не TaskConnect
@@ -222,7 +220,8 @@ void vServerClientRequestMessage (void* pvCB_Arg, char* pcUserName, const str_SG
 				
 				//Init
 				if(_taskDS->getID() == 0) {
-					_taskDS->setID(_clSocket);
+                    Logger::log(Logger::LogLevel::log_DEBUG, "CMD_TERM_LIST_DS | INIT | socket %d ", _clSocket );
+                    _taskDS->setID(_clSocket);
 					_taskDS->setRequestMessage(*pxSrcRequestMessage);
 					_taskDS->setResponseMessage(pxDstResponseMessage);
 				
@@ -230,9 +229,18 @@ void vServerClientRequestMessage (void* pvCB_Arg, char* pcUserName, const str_SG
 						Logger::log(Logger::LogLevel::log_ERROR, "_taskDS is null");
 						return;
 					}
-				
-					_taskDS->setSession(_sessionDS);
-					_taskDS->setIndex(_clSocket); 
+                    _taskDS->setSession(_sessionDS);
+                    _taskDS->setIndex(_clSocket);
+
+
+
+                    if(_sessionDS) {
+                        Logger::log(Logger::LogLevel::log_DEBUG, "CMD_TERM_LIST_DS | SET SESSION |");
+//                        _taskDS->setSession(_sessionDS);
+                        _sessionDS->printProperties();
+                    } else {
+                        Logger::log(Logger::LogLevel::log_DEBUG, "CMD_TERM_LIST_DS | _sessionDS | nullptr  ");
+					}
 
 					cmdTaskTerminalListDS* _cmdListDS = _clStack->xCmdTaskDSList;   // Создаём команду получения списка терминалов с DS сервера
 //					_cmdListDS->setManager(_clStack->cxManagerData);				// Передаем команде указатель на Менеджера (у каждого клиента он свой)
@@ -257,8 +265,7 @@ void vServerClientRequestMessage (void* pvCB_Arg, char* pcUserName, const str_SG
 		
 		if ((pxSrcRequestMessage->ucPar == 0x01) && (pxSrcRequestMessage->usDataSize > 0)) {
 			std::lock_guard<std::mutex> lock(_server->xMessageMutex); 
-			
-			try {
+    		try {
 				// Получаем указатель 
 				TaskaBase* taskBasePtr = _tasksList->getTaskInstance(_clSocket, pxSrcRequestMessage);
 				TaskConnect* _taskRS = nullptr;	
@@ -274,21 +281,24 @@ void vServerClientRequestMessage (void* pvCB_Arg, char* pcUserName, const str_SG
 					Logger::log(Logger::LogLevel::log_ERROR, "CMD_TERM_LIST 0x01 Could not convert object of type TaskaBase to TaskConnect");
 				}
 
-				if(_taskRS->getID() == 0) {	
+				if(_taskRS->getID() == 0) {
+
 					_taskRS->setID(_clSocket);
 					_taskRS->setRequestMessage(*pxSrcRequestMessage);
 					_taskRS->setResponseMessage(pxDstResponseMessage);
 		
 					if(_clStack->xSessionRS == nullptr) {
-						_clStack->xSessionRS = SessionRSLoad();	
-						
-						_clStack->cxManagerData->threadInfo->setCurrentSessionRS(_clStack->xSessionRS);
+                        Logger::log(Logger::LogLevel::log_DEBUG, " TERMINAL LIST 0x0 | SESSION EMPTY | LOAD SESSION  ");
+						_clStack->xSessionRS = SessionRSLoad();
+                        _taskRS->setSession(_clStack->xSessionRS);
+//						_clStack->cxManagerData->threadInfo->setCurrentSessionRS(_clStack->xSessionRS);
 					}
 				   //Заполняем задачу, реквезитами RS сервера
-				   if(! Fill_Task(_taskRS, _clStack->xSessionRS)) {
-				   		usSGP2_ML_MessagePutByte(pxDstResponseMessage, 0xE1);
-						return;
-				   } 
+//				   if(! Fill_Task(_taskRS, _clStack->xSessionRS)) {
+//                        Logger::log(Logger::LogLevel::log_ERROR, " CMD_TERM_LIST_RS | FILL_Task | 0xE1");
+//				   		usSGP2_ML_MessagePutByte(pxDstResponseMessage, 0xE1);
+//						return;
+//				   }
 					
 					cmdTask* _cmdTask = _clStack->xCmdTask;//new cmdTask();
 					_taskRS->setCMD(_cmdTask);	
@@ -306,7 +316,7 @@ void vServerClientRequestMessage (void* pvCB_Arg, char* pcUserName, const str_SG
 				// Получаем указатель 
 				TaskaBase* taskBasePtr = _tasksList->getTaskInstance(_clSocket, pxSrcRequestMessage);
 				// Преобразуем указатель в тип TaskConnect
-				TaskConnect* _taskRS = dynamic_cast<TaskConnect*>(taskBasePtr);
+				TaskConnect* _taskRS = dynamic_cast<TaskConnect*>(taskBasePtr); //dynamic_cast<TaskConnect*>(taskBasePtr);
 	
 				if(taskBasePtr == nullptr) { // ???? ?? ???????? ?????????, ??????? ????
 //					Logger::log(Logger::LogLevel::log_DEBUG, "GET | nullptr | new Instans / CMD_TERM_LIST");
@@ -319,19 +329,25 @@ void vServerClientRequestMessage (void* pvCB_Arg, char* pcUserName, const str_SG
 					Logger::log(Logger::LogLevel::log_ERROR, "CMD_TERM_LIST 0x30 Could not convert object of type TaskaBase to TaskConnect");
 				}	
 				
-				if(_taskRS->getID() == 0) {	
+				if(_taskRS->getID() == 0) {
+
 					_taskRS->setID(_clSocket);
 					_taskRS->setRequestMessage(*pxSrcRequestMessage);
 					_taskRS->setResponseMessage(pxDstResponseMessage);
 					
 					if(_clStack->xSessionRS == nullptr) {
-					_clStack->xSessionRS = SessionRSLoad();	
+                        Logger::log(Logger::LogLevel::log_DEBUG, "TERMINAL LIST  0x30 | SESSION EMPTY | LOAD SESSION  ");
+
+                        _clStack->xSessionRS = SessionRSLoad();
+//                        _clStack->cxManagerData->threadInfo->setCurrentSessionRS(_clStack->xSessionRS);
+                        _taskRS->setSession(_clStack->xSessionRS);
 					}
 					
 					//Заполняем задачу, реквезитами RS сервера
 					if(! Fill_Task(_taskRS, _clStack->xSessionRS)) {
-					usSGP2_ML_MessagePutByte(pxDstResponseMessage, 0xE1);
-					return;
+                        Logger::log(Logger::LogLevel::log_ERROR, " CMD_TERM_LIST_RS | FILL_Task 0x30 | 0xE1");
+					    usSGP2_ML_MessagePutByte(pxDstResponseMessage, 0xE1);
+					    return;
 					} 
 					
 					cmdTask* _cmdTask = _clStack->xCmdTask;//new cmdTask();

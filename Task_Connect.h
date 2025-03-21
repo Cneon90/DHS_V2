@@ -40,11 +40,11 @@ class TaskConnect:
 				Logger::log(Logger::LogLevel::log_ERROR, "NOT CREATE Client DS!");
 				return;
 			}
-			
+
 			ClientDS->init();
 			ClientDS->setSocket(cHost, usPort, uiAddress);
 			ClientDS->setUser(cUser, cPass);
-			ClientDS->setIndex(FClientSocket);	
+			ClientDS->setIndex(FClientSocket);
 			FTaskCMD->setClientMessage(&ClientMessage);
 			ClientDS->setCommand(FTaskCMD);
 
@@ -68,8 +68,8 @@ class TaskConnect:
 				_msgResponseClient = FTaskCMD->getClientResponseMsg();
 				usParam	= _msgResponseClient->ucPar;
 			} else {
-				Logger::log(Logger::LogLevel::log_ERROR, "Client SGP2_ML_RESULT_error!");	
-				_msgResponseClient = ClientDS->getMessageError();	
+				Logger::log(Logger::LogLevel::log_ERROR, "Client SGP2_ML_RESULT_error! User:%s, Password:%s, Host:%s, Port:%d ! CMD 0x%x par 0x%x ", cUser, cPass, cHost, usPort, FTaskCMD->getCmd(), FTaskCMD->getPar());
+				_msgResponseClient = ClientDS->getMessageError();
 				usParam = _msgResponseClient->ucPar;	
 			}		
 			  

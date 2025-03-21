@@ -146,7 +146,7 @@ class thClientConnect
 		}
 		
 		//Set connection soket
-		void setSocket(const char* host, unsigned short port, unsigned int address);
+		void setSocket(const char* host, const unsigned short port, const unsigned int address);
 		//Set Auth 
 		void setUser(const char* _user, const char* _pass);		
 		const char* getHost() {	return ConnectHandler->pxConnectionAttr->cHost;	}

@@ -19,6 +19,9 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_SOURCE_DIR}/build/release)
 set(CMAKE_TOOLCHAIN_FILE "K:/Soft/vcpkg/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE STRING "")
 set(CMAKE_PREFIX_PATH "K:/Soft/vcpkg/vcpkg/installed/x64-windows")
 #set(CMAKE_PREFIX_PATH "K:/Soft/vcpkg/vcpkg/installed/x64-windows/share/indicators")
+
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded") # Использует /MT
+
 # Указываем каталог с исходниками
 file(GLOB SOURCES
         *.cpp
@@ -39,9 +42,12 @@ link_directories(
         "K:/Soft/vcpkg/vcpkg/installed/x64-windows/lib"
 )
 
-find_package(indicators CONFIG REQUIRED)
-find_package(Crow CONFIG REQUIRED)
+#======set library=======
+#find_package(indicators CONFIG REQUIRED)
+#set(indicators ON)
 
+find_package(Crow CONFIG REQUIRED)
+set(Crow ON)
 
 # Добавляем исполнимый файл
 add_executable(DHS ${SOURCES})
@@ -52,19 +58,29 @@ target_link_libraries(DHS PRIVATE
 #        wsock32
         ws2_32
         wsock32
-        kernel32
-        user32
-        gdi32
-        winspool
-        shell32
-        ole32
-        oleaut32
-        uuid
-        comdlg32
-        advapi32
-        indicators::indicators
+#        kernel32
+#        user32
+#        gdi32
+#        winspool
+#        shell32
+#        ole32
+#        oleaut32
+#        uuid
+#        comdlg32
+#        advapi32
+#        indicators::indicators
         PRIVATE Crow::Crow asio::asio
 )
 
 # Указываем дополнительные флаги для компиляции
 #target_compile_options(DHS PRIVATE -Wall -g3)
+
+
+#README
+#set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded") # Использует /MT
+#
+#set_property(TARGET my_program PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded")ded") # Использует /MT
+#
+#Открываем File ? Settings ? CMake.
+#В поле CMake options добавляем:
+#-DCMAKE_CXX_FLAGS="/MT"

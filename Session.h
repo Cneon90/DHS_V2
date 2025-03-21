@@ -5,7 +5,7 @@
 
 class Session {
 private:
-    std::mutex tasksMutex;
+    mutable std::mutex tasksMutex;
     char cUser[SERVER_CONN_ATTR_TEXT_MAX_SIZE];
     char cPass[SERVER_CONN_ATTR_TEXT_MAX_SIZE];
     char cHost[SERVER_CONN_ATTR_TEXT_MAX_SIZE];
@@ -20,6 +20,15 @@ public:
 //        std::strncpy(cPass, pass.c_str(), SERVER_CONN_ATTR_TEXT_MAX_SIZE - 1);
 //        cPass[SERVER_CONN_ATTR_TEXT_MAX_SIZE - 1] = '\0';
 //    }
+
+    void printProperties() {
+//        std::lock_guard<std::mutex> lock(tasksMutex);
+//        std::cout << "User: " << cUser << std::endl;
+//        std::cout << "Password: " << cPass << std::endl;
+//        std::cout << "Host: " << cHost << std::endl;
+//        std::cout << "Port: " << usPort << std::endl;
+//        std::cout << "Address: " << uiAddress << std::endl;
+    }
 
     void setUser(const std::string& user, const std::string& pass) {
         std::lock_guard<std::mutex> lock(tasksMutex);
@@ -43,31 +52,31 @@ public:
         uiAddress = address;
     }
 
-    std::string getUser() {
+    std::string getUser() const  {
         std::lock_guard<std::mutex> lock(tasksMutex);
         // Находим первый нулевой символ в cUser
         size_t length = strlen(cUser);  // Вычисляем длину строки без учета нулевого символа
         return std::string(cUser, length);  // Возвращаем строку, обрезанную до первого \0
     }
 
-    std::string getPass() {
+    std::string getPass() const {
         std::lock_guard<std::mutex> lock(tasksMutex);
         // Находим первый нулевой символ в cUser
         size_t length = strlen(cPass);  // Вычисляем длину строки без учета нулевого символа
         return std::string(cPass, length);  // Возвращаем строку, обрезанную до первого \0
     }
 
-    unsigned short getPort() {
+    unsigned short getPort() const {
         std::lock_guard<std::mutex> lock(tasksMutex);
         return usPort;
     }
 
-    unsigned int getAddress() {
+    unsigned int getAddress() const {
         std::lock_guard<std::mutex> lock(tasksMutex);
         return uiAddress;
     }
     
-    std::string getHost() {
+    std::string getHost() const {
         std::lock_guard<std::mutex> lock(tasksMutex);
         return std::string(cHost);
     }

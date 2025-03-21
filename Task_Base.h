@@ -60,7 +60,7 @@ class TaskaBase
 		
 		str_SGP2_ML_Message*      ResponseMessage = nullptr; // only RESPONSE!
 		
-		std::mutex mtxTask;	
+		mutable std::mutex mtxTask;
 		std::mutex mtxState;
 //		std::mutex mtxState2;
 		std::mutex joinmtx;
@@ -160,7 +160,7 @@ class TaskaBase
 		
 		// Message (set,get)
 		const str_SGP2_ML_Message& getMessage() const {
-//			std::lock_guard<std::mutex> lock(mtxTask);	
+			std::lock_guard<std::mutex> lock(mtxTask);
 			return FRequestMessage; 
 		}
 		
@@ -330,36 +330,43 @@ class TaskBaseConnect
 		char cHost[SERVER_CONN_ATTR_TEXT_MAX_SIZE];
 		unsigned short usPort;
 		unsigned int   uiAddress;
-		AbstractCommandProxy* FTaskCMD = nullptr;	
+		AbstractCommandProxy* FTaskCMD = nullptr;
+
+        Session* FSession = nullptr;
 	public:
 
 	// set User	
 	void setUser(const std::string& user, const std::string& pass) {
 		std::unique_lock<std::mutex> lock(tasksMutex);
         // Очистка массивов перед копированием
-        std::memset(cUser, 0, SERVER_CONN_ATTR_TEXT_MAX_SIZE);
-        std::memset(cPass, 0, SERVER_CONN_ATTR_TEXT_MAX_SIZE);
+//        std::memset(cUser, 0, SERVER_CONN_ATTR_TEXT_MAX_SIZE);
+//        std::memset(cPass, 0, SERVER_CONN_ATTR_TEXT_MAX_SIZE);
 
         // Копируем строки с учетом их длины, гарантируя, что они будут правильно завершены нулем
         size_t userLength = min(user.size(), static_cast<size_t>(SERVER_CONN_ATTR_TEXT_MAX_SIZE - 1));
-        std::memcpy(cUser, user.c_str(), userLength);
+//        std::memcpy(cUser, user.c_str(), userLength);
+        std::strncpy(cUser, user.c_str(), userLength);
         cUser[userLength] = '\0';  // Завершающий ноль
 
         size_t passLength = min(pass.size(), static_cast<size_t>(SERVER_CONN_ATTR_TEXT_MAX_SIZE - 1));
-        std::memcpy(cPass, pass.c_str(), passLength);
+//        std::memcpy(cPass, pass.c_str(), passLength);
+        std::strncpy(cPass, pass.c_str(), passLength);
         cPass[passLength] = '\0';  // Завершающий ноль
 	}
 	
 	// set Socket
-    void setSocket(const std::string& host, unsigned short port, unsigned int address) {
+    void setSocket(const std::string& host, const unsigned short port, const unsigned int address) {
         std::unique_lock<std::mutex> lock(tasksMutex);
+        size_t cHostLength = min(host.size(), static_cast<size_t>(SERVER_CONN_ATTR_TEXT_MAX_SIZE - 1));
 		std::strncpy(cHost, host.c_str(), SERVER_CONN_ATTR_TEXT_MAX_SIZE - 1);
+        cHost[cHostLength] =  '\0';
         usPort = port;
         uiAddress = address;
     }
     
     // set command run
 	void setCMD(AbstractCommandProxy* _cmd) {
+
 		if(_cmd == nullptr) {
 			Logger::log(Logger::LogLevel::log_ERROR, "CMD is null ");
 			return;		 
@@ -371,13 +378,14 @@ class TaskBaseConnect
 //	// Принимаем сразу указатель на сессию
 	void setSession(Session* _session)
 	{
-        std::lock_guard<std::mutex> lock(tasksMutex);  // Автоматическая блокировка и разблокировка мьютекса
+//        std::lock_guard<std::mutex> lock(tasksMutex);  // Автоматическая блокировка и разблокировка мьютекса
+        tasksMutex.lock();
         try {
             if (_session == nullptr) {
                 Logger::log(Logger::LogLevel::log_ERROR, "TASK_BASE | SESSION | nullptr");
                 return;
             }
-
+            FSession = _session;
             std::string _host = _session->getHost();
             unsigned short _port = _session->getPort();
             unsigned int _id = _session->getAddress();
@@ -402,6 +410,7 @@ class TaskBaseConnect
                 return;
             }
 
+            tasksMutex.unlock();
             // Логика загрузки сессии
             setSocket(_host, _port, _id);
             setUser(_user, _pass);
@@ -413,6 +422,7 @@ class TaskBaseConnect
         catch (...) {
             // Логирование, если произошло не предусмотренное исключение
             Logger::log(Logger::LogLevel::log_ERROR, "An unknown error occurred while setting the session.");
+            tasksMutex.unlock();
         }
 	}
 

@@ -86,15 +86,16 @@ void ThRequestInfo::StartExecute()
 //				Logger::log(Logger::LogLevel::log_DEBUG, "ThRequest | thClient | Terminal ID: 0x%X ", Terminal.ID );	
 				
 				ClientRS->init();
-				ClientRS->setIndex(100);	
-				ClientRS->setSession(xSessionRS);
+				ClientRS->setIndex(100);
+				if(xSessionRS != nullptr) ClientRS->setSession(xSessionRS);
 				Term_rs_info->setID(Terminal.ID); 
 				ClientRS->setCommand(Term_rs_info);			
 				ClientRS->Execute();
 			
 				unsigned char state = ClientRS->getLastError();
 				if (state != SGP2_ML_RESULT_SUCCESS) { 
-					Logger::log(Logger::LogLevel::log_ERROR, "ThRequest | thClient | LAST ERROR: %d ", state);	
+					Logger::log(Logger::LogLevel::log_ERROR, "ThRequest | thClient | LAST ERROR: %d ", state);
+                    xSessionRS->printProperties();
 				} 
 				
 //				Terminal.addRsInfo(Term_rs_info->getAnswer(), 62);
