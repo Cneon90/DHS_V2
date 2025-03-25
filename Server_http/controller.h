@@ -157,13 +157,13 @@ crow::response Questhandle(const crow::request& req, int id)
 //    return crow::response(os.str());
 //}
 //
-//crow::response test_vue2(const std::string& name) {
-//    crow::mustache::template_t tmpl = crow::mustache::load("testvue_2.html");
-//    crow::mustache::context ctx;
-//
-//    ctx["name"] = name;  // Передача данных в шаблон
-//    return crow::response(tmpl.render(ctx));  // Рендеринг шаблона
-//}
+
+crow::response QuestvueHandler() {
+    crow::mustache::template_t tmpl = crow::mustache::load("questv2.html");
+    crow::mustache::context ctx;
+
+    return crow::response(tmpl.render(ctx));  // Рендеринг шаблона
+}
 //
 //crow::response test_vue3(const std::string& name) {
 //    crow::mustache::template_t tmpl = crow::mustache::load("testvue_3.html");

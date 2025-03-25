@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Диалог с API</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+    <style>
+        .button {
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div v-if="solution">
+            <p>[[ solution ]]</p> <!-- Отображаем решение, если оно есть -->
+			
+			<button class="button" @click="goBack">Назад</button> <!-- Кнопка "Назад" -->
+			<br>
+			<button @click="goToFirstQuestion" style="font-size: 16px; color: blue;">Дом</button>
+        </div>
+        <div v-else>
+            <h1>[[ question ]]</h1>
+            <div v-for="answer in answers" :key="answer.id">
+                <button class="button" @click="nextQuestion(answer.NextActID)">[[ answer.Text ]]</button>
+            </div>
+			
+			<br>
+			<br>
+			<br>
+				<!-- Кнопка "Назад" доступна, если в массиве больше 0 элементов -->
+				<button 
+					class="button" 
+					@click="goBack" 
+					:disabled="previousIDs.length <= 0">
+					Назад
+				</button>
+
+			<br>
+			<button class="button" @click="goToFirstQuestion" style="font-size: 16px; color: blue;">Дом</button>
+			</div>
+        <div v-if="error" style="color: red; font-size: 18px;">
+            [[ error ]]
+        </div>
+    </div>
+
+    <script>
+        new Vue({
+            el: '#app',
+			delimiters: ['[[', ']]'], // Меняем {{ }} на [[ ]]
+            data: {
+                question: '',
+                answers: [],
+                solution: null,  // Поле для решения, если оно есть
+                error: null,
+				previousIDs: []  // Массив для хранения предыдущих nextActID
+            },
+            methods: {
+                async fetchQuestion(id) {
+                    try {
+                        // Запрос к API с текущим ID вопроса
+                        const response = await fetch(`http://127.0.0.1:18080/quest/${id}`, {
+                            method: 'GET',
+                            headers: {
+                                'Content-Type': 'application/json; charset=windows-1251'  // Указание кодировки
+                            }
+                        });
+
+						// Проверка статуса ответа
+						if (response.ok) { // если код ответа 200-299
+						const arrayBuffer = await response.arrayBuffer();
+						const decoder = new TextDecoder('windows-1251');
+						const text = decoder.decode(arrayBuffer);
+
+						const data = JSON.parse(text);
+
+						if (data.Solution) {
+							this.solution = data.Solution;
+							this.question = '';
+							this.answers = [];
+						} else {
+							this.question = data.Question;
+							this.answers = data.Answer;
+							this.solution = null;
+						}
+
+						this.error = null;
+
+						// Добавляем ID в массив previousIDs только при успешном ответе
+						//this.previousIDs.push(id); 
+						} else {
+						// Обработка ошибки, если код не 200
+						this.error = `Ошибка загрузки. Статус: ${response.status}`;
+						}
+                    } catch (e) {
+                        this.error = e.message || "Произошла ошибка";
+                    }
+                },
+                nextQuestion(nextActID) {
+					// Сохраняем текущий ID в массив previousIDs
+                    this.previousIDs.push(nextActID);
+                    // Переход к следующему вопросу по NextActID
+                    this.fetchQuestion(nextActID);
+                },
+				 async goBack() {
+                    // Убираем последний ID из массива и возвращаемся к предыдущему вопросу
+                  //  const previousID = this.previousIDs.pop();
+                  //  await this.fetchQuestion(previousID);
+				  
+					if (this.previousIDs.length <= 1) {
+					// Если в массиве 1 или меньше элементов, переходим на первый вопрос
+						console.log(0);
+						this.goToFirstQuestion();
+					} else {
+						
+						// Если элементов больше 1, переходим к предпоследнему ID
+						const previousID = this.previousIDs[this.previousIDs.length - 2];
+						console.log(previousID);
+						console.log("counts: "+ this.previousIDs.length);
+						
+						//for(int i=0; i<this.previousIDs.length; i++) { 
+						//		console.log("el:" +this.previousIDs[i]);  
+						//}
+						
+						this.previousIDs.pop();  // Убираем последний ID
+						await this.fetchQuestion(previousID);
+					}
+			
+			
+                },
+				async goToFirstQuestion() {
+					// Очищаем массив previousIDs при переходе на первый вопрос
+					this.previousIDs = [];
+					//this.previousIDs.push(0);
+					// Запрос на первый вопрос
+					await this.fetchQuestion(0);
+				}
+            },
+            mounted() {
+				//this.previousIDs.push(0);
+                // Изначально запрашиваем первый вопрос
+                this.fetchQuestion(0);
+            }
+        });
+    </script>
+</body>
+</html>

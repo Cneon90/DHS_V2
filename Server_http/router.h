@@ -12,6 +12,11 @@ void define_routes(crow::SimpleApp& app)
     CROW_ROUTE(app, "/" ROUTER_PREFIX_QUEST "/<int>")
             .methods(crow::HTTPMethod::Get)(Questhandle);
 
+    CROW_ROUTE(app, "/questions")
+            ([]() {
+                return QuestvueHandler();  // Передаем имя в шаблон
+            });
+
 
 //    // Маршрут для главной страницы
 //    CROW_ROUTE(app, "/quest/<int>")
@@ -84,10 +89,7 @@ void define_routes(crow::SimpleApp& app)
 //                return render_html_with_data("John Doe");  // Передаем имя в шаблон
 //            });
 //
-//    CROW_ROUTE(app, "/vue2")
-//            ([]() {
-//                return test_vue2("VUE 2");  // Передаем имя в шаблон
-//            });
+
 //
 //    CROW_ROUTE(app, "/vue3")
 //            ([]() {
