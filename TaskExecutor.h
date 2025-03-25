@@ -19,10 +19,8 @@ class TaskListener: public TaskListAttachBase
 {
 	private:
 		std::thread thTaskListener;
-		std::mutex CurTaskMutex;	
-		void StartListening();
-	
-	public:
+		std::mutex CurTaskMutex;
+public:
 		void thStartListening()  {
 			thTaskListener = std::thread(&TaskListener::StartListening, this); 
 		}	
@@ -35,7 +33,9 @@ class TaskListener: public TaskListAttachBase
 		
 		~TaskListener() {
 			thWaitForCompletion(); 
-		}	
+		}
+
+    [[noreturn]] void StartListening();
 };
 
 #endif

@@ -1,5 +1,6 @@
 #include "DialogAPI.h"
 
+std::string DialogAPI::FileQuestPath = ""; // Инициализация статического члена
 
 QeustItem DialogAPI::getFirstQuest(std::string _path, std::string _name, enSgDialogItemType etype) {
 	QeustItem _item; 

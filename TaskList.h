@@ -43,7 +43,7 @@ public:
 	
 	
 	// ≈сли в списке существует, вернем задачу, если нет nullptr 
-//	TaskaBase* getTaskMSG(const str_SGP2_ML_Message* _msg);
+    //	TaskaBase* getTaskMSG(const str_SGP2_ML_Message* _msg);
 	
 	int TaskSum(TaskState _state); 
 	

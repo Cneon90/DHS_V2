@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 project(DHS)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_C_STANDARD 11)
 
 #set(CMAKE_GENERATOR_PLATFORM "x64")
@@ -29,6 +29,7 @@ file(GLOB SOURCES
         extLib/*.cpp
         SgDialog/*.cpp
         SGP2/*.c
+        Server_http/*.cpp
         )
 
 # ”казываем пути к заголовочным файлам
