@@ -1,18 +1,5 @@
 #include "main.h"
 
-//-----http-server------------
-void start_http_server() {
-
-    crow::SimpleApp app;
-
-    CROW_ROUTE(app, "/")([](){
-        return "Hello, kirill!";
-    });
-
-    app.loglevel(crow::LogLevel::Error);
-    app.port(18080).multithreaded().run();
-}
-//---------------
 
 
 
@@ -136,8 +123,8 @@ int main(int argc, char** argv)
 	}
 
 // ----- Create task list ------------
-	TasksList* _tasksList = new TasksList();
-	TaskListener* tListener = new TaskListener();
+	auto* _tasksList = new TasksList();
+	auto* tListener = new TaskListener();
 // -----------------------------------
 
 //======== Dialogs =========================
@@ -152,7 +139,9 @@ int main(int argc, char** argv)
 	QuestFileFind->executeScan();
 	
 	std::string QuestFilename = QuestFileFind->getCurrentFile(); // Берем первый файл из списка в директории
-	Logger::log(Logger::LogLevel::log_INFO, "Quest file=%s ", QuestFilename.c_str());	
+	Logger::log(Logger::LogLevel::log_INFO, "Quest file=%s ", QuestFilename.c_str());
+
+    DialogAPI::FileQuestPath = std::string(QUESTIONS_CATALOG_NAME) + PORT_CATALOG_DEVIDER_SYMBOL + QuestFilename;
 
 	delete QuestFileFind; 
 //	 std::string QuestFilename = "123.dgp";
@@ -176,82 +165,22 @@ int main(int argc, char** argv)
 	
 	Diag->thStartListening();
 	Logger::log(Logger::LogLevel::log_INFO, "Start %s", serName);
-//=== Server ====== 
+//=== Server ======
+
 //--- Tasks Listing ------- 
 	tListener->setTasksList(_tasksList);
 	tListener->thStartListening();
 	Logger::log(Logger::LogLevel::log_DEBUG, "Start Listing tasks");
 //--- Tasks Listing ------- 
 
-//	TRelayServer* RS = new TRelayServer(0,"User2","Password", "host3", 1510, 0, true);
-//	RSHandler::addRecord(RS_SERVERS_FILE_NAME, *RS);
-	
-//	std::vector<TRelayServer> records = {
-//        TRelayServer(1, "user1", "pass1", "host1", 8080, 123456),
-//        TRelayServer(2, "user2", "pass2", "host2", 9090, 654321),
-//        TRelayServer(3, "user3", "pass3", "host3", 7070, 111222)
-//    };
 
-// Запись множества объектов в файл
-//    RSHandler::writeToFile(RS_SERVERS_FILE_NAME, records);
-// Чтение объектов из файла
-//    RSHandler::readFromFile(RS_SERVERS_FILE_NAME);
-//     std::vector<TRelayServer> records = RSHandler::readAllFromFile(RS_SERVERS_FILE_NAME);
-//     printf("\n\n RS COUNTS: %d \n\n", records.size());
-
-
-/*
-	Questions load 
-*/
-
-
-    
-//    std::string str = "Привет, мир!";
-//    std::cout << str << std::endl;
-//    
-// 	TSgDialog* TDialog = new TSgDialog();
-//	TDialog->setCurrentPath("Questions\\123.dgp");	
-//	TDialog->init();
-//	
-//	TSgDialogList* DialogList = TDialog->getItems(SDIT_QUESTION);
-//	DialogList = TDialog->getItems(SDIT_DIALOG);
-	
-	/*
-	std::vector<TSgDialogItem>* ListQuestV = DialogList->getList();
-	int countQ = ListQuestV->size();
-	printf("\n ===== ");
-	std::cout << "\n ===== Count quest = " << countQ << std::endl;
-	*/
-	
-	/* Первый диалог */
-//	TSgDialogItem quest =  DialogList->getFirst();	
-//	printf("\n ===== \n");
-//	std::cout << "ID:" 		<<	quest.Id 	<< std::endl;
-//	std::cout << "Text:" 	<<  quest.Text 	<< std::endl;
-//	std::cout << "Type: " 	<<  quest.Type 	<< std::endl;
-//	printf("\n ===== \n");
-//	//======================
-//	
-//	int FirstID = 0;
-//	FirstID = TDialog->getIntID(quest.Id);
-//	strSgDialogItem Item;
-//	Item = TDialog->getItemByID(FirstID);
-//	if(Item.eType == SDIT_DIALOG) {
-//		str_xDialogItemDataStruct xDialogItemData = *(str_xDialogItemDataStruct*) Item.pvItemData; // Answers by dialog 
-//		
-//		std::cout << "Answers: \n"  	<< std::endl;	
-//		for (i =0; i < xDialogItemData.ucAnswersCount; i++) {
-//			std::string Text = TDialog->getNameByID(xDialogItemData.iAnswer[i]);
-//
-//			if(Text == "") { continue; }
-//			std::cout << i << ". " << Text << "\n" <<  std::endl;
-//		}		
-//	}
-//	
-
-
-    // Запускаем HTTP сервер в отдельном потоке
-    std::thread http_thread(start_http_server);
+/*------------------------------------------------------------
+  ======================== HTTP SERVER =======================
+ ------------------------------------------------------------*/
+    auto* serverhttp = new ServerHttp();
+    serverhttp->setQuestPath(QuestPath);
+    serverhttp->thStart();
+//==========================================
 
 		
 	//=== Input command ============
@@ -275,12 +204,12 @@ int main(int argc, char** argv)
 		
 		 if (strcmp(cBuf, "Exit") == 0 || cBuf[0] == 'e' || cBuf[0] == 'E') {
             printf("  Exit\n");
-            http_thread.join();
+
             return 0;
         }
 		//============================================================= 
 	}
 
-    http_thread.join();
+//    http_thread.join();
 	return 0;
 }

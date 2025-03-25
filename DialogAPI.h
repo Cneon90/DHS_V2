@@ -29,8 +29,10 @@ public:
 	unsigned int getQuestID_First();
 	// Получаем текст решения по ID 
 	std::string getSolutionText(unsigned int DialogId);
-};
 
+    // Статическое поле
+    static std::string FileQuestPath;
+};
 
 
 #endif

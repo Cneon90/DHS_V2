@@ -791,13 +791,13 @@ void vServerClientRequestMessage (void* pvCB_Arg, char* pcUserName, const str_SG
 				return;	
 			}
 			
-			unsigned int RequsetID = usSGP2_GetShortFromArray(pxSrcRequestMessage->pcData);
+			unsigned int RequestID = usSGP2_GetShortFromArray(pxSrcRequestMessage->pcData);
 			unsigned int DialogID = 0;
 
-			if(RequsetID == 0) { 
+			if(RequestID == 0) {
 				DialogID = QuestAPI->getQuestID_First();	// Init Dialog (search first diaolog)
 			} else { 
-				DialogID = RequsetID;
+				DialogID = RequestID;
 			} 			
 
 			// Узнаем тип запрашиваемого item 

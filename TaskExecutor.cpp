@@ -3,8 +3,8 @@
 #define TIME_DELETE_TASK		3
 
 
-
-void TaskListener::StartListening() 
+[[noreturn]]
+void TaskListener::StartListening()
 {
 	for(;;) {
 		std::unique_lock<std::mutex> lock(CurTaskMutex); 
