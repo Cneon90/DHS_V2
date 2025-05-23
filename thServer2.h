@@ -5,6 +5,7 @@
 #include <cstdlib>
 //#include <stdio.h>  old
 //#include <stdlib.h> old
+#include <utility>
 #include <vector>
 //#include <pthread.h>
 #include <thread>
@@ -116,13 +117,9 @@ class vsServer: public TaskListAttachBase {
 		void StartListening();
 		void acceptConnections();
     	void handleClient(int clientSocket);
-		
-    	int clientSocket;	
-    	int serverSocket;
-    	int Index;
-    	int port;
-    	bool running;
-    	bool isDeamonMode;
+
+        int clientSocket    = 0;
+        int serverSocket    = 0;
     	int Index           = 0;
     	int port            = 0;
     	bool running        = false;
@@ -158,7 +155,8 @@ class vsServer: public TaskListAttachBase {
 //		}
 
 		void setQuestPath(std::string _path) {
-			FQuestPath = _path; 	
+//            FQuestPath = _path;
+			FQuestPath = std::move(_path);
 		}
 		
 		std::string getQuestPath() { 

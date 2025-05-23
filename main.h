@@ -58,10 +58,10 @@
                                    DEFINES
 *******************************************************************************/
 #define APP_VERSION_H                      			1
-#define APP_VERSION_L                     			12
+#define APP_VERSION_L                     			14
 
-#define APP_DATE_D                         			28
-#define APP_DATE_M                         			02
+#define APP_DATE_D                         			23
+#define APP_DATE_M                         			05
 #define APP_DATE_Y                         			25
 
 #define CONNECTIONS_LOGS_CATALOG_NAME      			"ConnectionsLog"

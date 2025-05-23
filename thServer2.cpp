@@ -1148,7 +1148,8 @@ void vsServer::handleClient(int _clientSocket) {
 			_clStack->cxManagerData->threadInfo->thStart();
 
 			// -------------------------------------------------------------------------------
-			
+            auto* _sessionDS = new Session; // Создаем свою сессию для каждого )
+
 			Logger::log(Logger::LogLevel::log_INFO, "Init OK, socket %d", _clientSocket);
             for (;;) {
                 try {
@@ -1159,7 +1160,8 @@ void vsServer::handleClient(int _clientSocket) {
 
                     ServerMutex.lock();
                     _clStack->xServer    = this;
-                    _clStack->xSessionDS = FSessionDS;
+//                    _clStack->xSessionDS = FSessionDS;
+                    _clStack->xSessionDS = _sessionDS;
                     _clStack->iSocket    = _clientSocket;
                     ServerMutex.unlock();
 
@@ -1179,10 +1181,12 @@ void vsServer::handleClient(int _clientSocket) {
                 }
             }
 
-
 	            iPortCloseServerSocket(_clientSocket);
 	            _clStack->cxManagerData->threadInfo->thStop();
                 clientSocket = 0;
+                delete _sessionDS;
+                _sessionDS = nullptr;
+
                 break;
         } catch (...) {
             Logger::log(Logger::LogLevel::log_ERROR, "Error initializing server handle for socket %d", _clientSocket);

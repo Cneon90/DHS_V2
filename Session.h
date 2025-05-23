@@ -46,7 +46,9 @@ public:
 
     void setSocket(const std::string& host, unsigned short port, unsigned int address) {
         std::lock_guard<std::mutex> lock(tasksMutex);
-        std::strncpy(cHost, host.c_str(), SERVER_CONN_ATTR_TEXT_MAX_SIZE - 1);
+//        std::strncpy(cHost, host.c_str(), SERVER_CONN_ATTR_TEXT_MAX_SIZE - 1);
+        strncpy_s(cHost, SERVER_CONN_ATTR_TEXT_MAX_SIZE, host.c_str(), SERVER_CONN_ATTR_TEXT_MAX_SIZE - 1);
+
         cHost[SERVER_CONN_ATTR_TEXT_MAX_SIZE - 1] = '\0';
         usPort = port;
         uiAddress = address;
