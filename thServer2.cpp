@@ -58,7 +58,7 @@ bool Fill_Task(TaskBaseConnect* _task, Session* _session)
 //******************************************************************************//
 void vServerClientRequestMessage (void* pvCB_Arg, char* pcUserName, const str_SGP2_ML_Message* pxSrcRequestMessage, str_SGP2_ML_Message* pxDstResponseMessage)
 {
-	pcSGP_ClientStack* _clStack =  reinterpret_cast<pcSGP_ClientStack*> (pvCB_Arg);
+	auto* _clStack =  reinterpret_cast<pcSGP_ClientStack*> (pvCB_Arg);
 	
 	vsServer*  _server    = _clStack->xServer; 
 	TasksList* _tasksList = _server->getTasksList();
@@ -147,8 +147,9 @@ void vServerClientRequestMessage (void* pvCB_Arg, char* pcUserName, const str_SG
 //					Logger::log(Logger::LogLevel::log_DEBUG, "GET | nullptr | new Instan / CMD_SES");
 					_taskDS = new TaskConnect();
 				} else { 
-					_taskDS = static_cast<TaskConnect*>(taskBasePtr);
-				}	
+					_taskDS = dynamic_cast<TaskConnect*>(taskBasePtr);
+				}
+
 				// Init
 				if(_taskDS->getID() == 0) {
 					_taskDS->setID(_clSocket);
@@ -204,7 +205,8 @@ void vServerClientRequestMessage (void* pvCB_Arg, char* pcUserName, const str_SG
 			try {
 				// Получаем указатель 
 				TaskaBase* taskBasePtr = _tasksList->getTaskInstance(_clSocket, pxSrcRequestMessage);
-				TaskConnect* _taskDS = nullptr;	
+				TaskConnect* _taskDS = nullptr;
+
 				// Преобразуем указатель в тип TaskConnect		
 				if(taskBasePtr == nullptr) { // Если не получили экземпляр, создаем свой
 //					Logger::log(Logger::LogLevel::log_DEBUG, "GET | nullptr | new Instans / CMD_TERMS");
@@ -901,6 +903,44 @@ void vServerClientRequestMessage (void* pvCB_Arg, char* pcUserName, const str_SG
 		}
 	
 	}
+
+    if(pxSrcRequestMessage->usCmd == CMD_ADMIN)
+    {
+        if (pxSrcRequestMessage->ucPar != 0x03) return;
+        Logger::log(Logger::LogLevel::log_DEBUG, "Enter CMD ADMIN");
+        STARTUPINFO si;
+        PROCESS_INFORMATION pi;
+
+        ZeroMemory(&si, sizeof(si));
+        si.cb = sizeof(si);
+        ZeroMemory(&pi, sizeof(pi));
+
+        // Запуск командного интерпретатора cmd.exe в новом консольном окне
+        if (CreateProcess(
+                NULL,
+//        (LPWSTR)L"cmd.exe",      // Командная строка
+                reinterpret_cast<LPSTR>((LPWSTR) "Dialog_Constructor.exe"),
+                NULL,                    // Атрибуты процесса
+                NULL,                    // Атрибуты потока
+                FALSE,                   // Не наследуем дескрипторы
+                CREATE_NEW_CONSOLE,      // Флаг для создания нового консольного окна
+                NULL,                    // Окружение
+                NULL,                    // Текущий каталог
+                &si,                     // Информация о старте
+                &pi                      // Информация о процессе
+        )) {
+//            std::cout << "Командный интерпретатор cmd.exe запущен в новом консольном окне." << std::endl;
+//            Logger::log(Logger::LogLevel::log_DEBUG, "RUN EXE");
+            WaitForSingleObject(pi.hProcess, INFINITE);
+            CloseHandle(pi.hProcess);
+            CloseHandle(pi.hThread);
+        } else {
+//            std::cerr << "Ошибка при создании процесса. Код ошибки: " << GetLastError() << std::endl;
+            Logger::log(Logger::LogLevel::log_ERROR, "ERROR RUN EXE");
+        }
+    }
+
+
 	
 	
 	
@@ -1033,7 +1073,7 @@ void vsServer::stop() {
 void vsServer::acceptConnections() {
     while (running) {
         socklen_t addrLen = sizeof(xClientAddr);
-        clientSocket = accept(serverSocket, (xPortTypeClientSocketAddr*)(&xClientAddr), &addrLen);
+        clientSocket = accept(serverSocket, (xPortTypeClientSocketAddr*) (&xClientAddr), &addrLen);
         
         if (clientSocket < 0) {
             Logger::log(Logger::LogLevel::log_ERROR, "NO_SOCKET! sock - %d ", clientSocket);
@@ -1071,15 +1111,16 @@ void vsServer::acceptConnections() {
 
 
 
-void vsServer::handleClient(int clientSocket) {
+void vsServer::handleClient(int _clientSocket) {
     #define SERVER_ADDRESS 0
 
-    unsigned char* pcReceiveBuffer = (unsigned char*)malloc(CONTROL_CONNECTION_IO_DATA_BUFFER_SIZE);
-    unsigned char* pcSendBuffer = (unsigned char*)malloc(CONTROL_CONNECTION_IO_DATA_BUFFER_SIZE);
+    auto* pcReceiveBuffer = (unsigned char*)malloc(CONTROL_CONNECTION_IO_DATA_BUFFER_SIZE);
+    auto* pcSendBuffer = (unsigned char*)malloc(CONTROL_CONNECTION_IO_DATA_BUFFER_SIZE);
+
     if (!pcReceiveBuffer || !pcSendBuffer) {
-        Logger::log(Logger::LogLevel::log_WARNING, "(Socket %d) Failed to allocate memory", clientSocket);
+        Logger::log(Logger::LogLevel::log_WARNING, "(Socket %d) Failed to allocate memory", _clientSocket);
         if (pcReceiveBuffer) free(pcReceiveBuffer);
-        iPortCloseServerSocket(clientSocket);
+        iPortCloseServerSocket(_clientSocket);
         return;
     }
     
@@ -1087,15 +1128,15 @@ void vsServer::handleClient(int clientSocket) {
 
     for (;;) {
         try {
-            Logger::log(Logger::LogLevel::log_INFO, "Init server handle, socket %d", clientSocket);
+            Logger::log(Logger::LogLevel::log_INFO, "Init server handle, socket %d", _clientSocket);
             vSGP2_ML_InitServerHandle(&xServerHandle, &xServer, CONTROL_CONNECTION_IO_DATA_BUFFER_SIZE, SERVER_ADDRESS, MY_SERVER_ID);
-			Logger::log(Logger::LogLevel::log_INFO, "Init step 2, socket %d", clientSocket);
+			Logger::log(Logger::LogLevel::log_INFO, "Init step 2, socket %d", _clientSocket);
             int k = 0;
             
-			pcSGP_ClientStack* _clStack = new pcSGP_ClientStack();
+			auto* const _clStack = new pcSGP_ClientStack;
             
             if (_clStack == nullptr) { 
-            	Logger::log(Logger::LogLevel::log_ERROR, "ERROR CREATE CLIENT STACK, socket %d", clientSocket);	
+            	Logger::log(Logger::LogLevel::log_ERROR, "ERROR CREATE CLIENT STACK, socket %d", _clientSocket);
 				continue;
 			}
 			
@@ -1105,30 +1146,27 @@ void vsServer::handleClient(int clientSocket) {
 				
 			*/
 			_clStack->cxManagerData->threadInfo->thStart();
-//		    _clStack->cxManagerData->threadInfo->thStart();
-			
-			
-	
+
 			// -------------------------------------------------------------------------------
 			
-			Logger::log(Logger::LogLevel::log_INFO, "Init OK, socket %d", clientSocket);
+			Logger::log(Logger::LogLevel::log_INFO, "Init OK, socket %d", _clientSocket);
             for (;;) {
                 try {
                     if (k >= CONTROL_CONNECTION_IO_DATA_BUFFER_SIZE) break;
-                    int i = iPortSocketRead(clientSocket, &pcReceiveBuffer[k], (CONTROL_CONNECTION_IO_DATA_BUFFER_SIZE - k));
+                    int i = iPortSocketRead(_clientSocket, &pcReceiveBuffer[k], (CONTROL_CONNECTION_IO_DATA_BUFFER_SIZE - k));
                     if (i <= 0) break;
                     k += i;
 
                     ServerMutex.lock();
                     _clStack->xServer    = this;
                     _clStack->xSessionDS = FSessionDS;
-                    _clStack->iSocket    = clientSocket;
+                    _clStack->iSocket    = _clientSocket;
                     ServerMutex.unlock();
 
                     int result = usSGP2_ML_ServerProcessRequest(&xServerHandle, _clStack, pcReceiveBuffer, k, pcSendBuffer, CONTROL_CONNECTION_IO_DATA_BUFFER_SIZE);
                     if (result > 0) {
-                        if (iPortSocketWrite(clientSocket, pcSendBuffer, result) != result) {
-                            Logger::log(Logger::LogLevel::log_WARNING, "(Socket %d) Socket Write break", clientSocket);
+                        if (iPortSocketWrite(_clientSocket, pcSendBuffer, result) != result) {
+                            Logger::log(Logger::LogLevel::log_WARNING, "(Socket %d) Socket Write break", _clientSocket);
                             break;
                         }
                     }
@@ -1137,24 +1175,26 @@ void vsServer::handleClient(int clientSocket) {
                  
                     
                 } catch (...) {
-                    Logger::log(Logger::LogLevel::log_ERROR, "Error processing request for socket %d", clientSocket);
+                    Logger::log(Logger::LogLevel::log_ERROR, "Error processing request for socket %d", _clientSocket);
                 }
             }
-            
-	            iPortCloseServerSocket(clientSocket);
+
+
+	            iPortCloseServerSocket(_clientSocket);
 	            _clStack->cxManagerData->threadInfo->thStop();
-            break;
+                clientSocket = 0;
+                break;
         } catch (...) {
-            Logger::log(Logger::LogLevel::log_ERROR, "Error initializing server handle for socket %d", clientSocket);
+            Logger::log(Logger::LogLevel::log_ERROR, "Error initializing server handle for socket %d", _clientSocket);
         }
     }
 
 	try { 
-		Logger::log(Logger::LogLevel::log_INFO, "Close socket %d", clientSocket);
+		Logger::log(Logger::LogLevel::log_INFO, "Close socket %d", _clientSocket);
 		free(pcReceiveBuffer);
 		free(pcSendBuffer);
 	} catch(...) {
-		Logger::log(Logger::LogLevel::log_ERROR, "Error free socket %d", clientSocket);	
+		Logger::log(Logger::LogLevel::log_ERROR, "Error free socket %d", _clientSocket);
 	}
 
 }

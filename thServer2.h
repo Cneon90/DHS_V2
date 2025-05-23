@@ -1,8 +1,10 @@
 #ifndef THSERVER2_H
 #define THSERVER2_H
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
+//#include <stdio.h>  old
+//#include <stdlib.h> old
 #include <vector>
 //#include <pthread.h>
 #include <thread>
@@ -90,7 +92,7 @@ typedef struct
 	cmdTask*        		xCmdTask    	= new cmdTask();
 	cmdTaskTerminalListDS*	xCmdTaskDSList	= new cmdTaskTerminalListDS();
 	cmdPingProxy* 			xCmdPing		= new cmdPingProxy();
-	int 		    		iSocket    		= 0;
+	int 		    	    iSocket    		= 0;
 	
 	DialogAPI*				QuestAPI		= new DialogAPI();
 	//--- Terminal list --- 
@@ -121,12 +123,16 @@ class vsServer: public TaskListAttachBase {
     	int port;
     	bool running;
     	bool isDeamonMode;
+    	int Index           = 0;
+    	int port            = 0;
+    	bool running        = false;
+    	bool isDeamonMode   = false;
     	
 //    	char* Name; 
-		std::string Name;
+		std::string Name    = "";
 		
-    	Accounts* FAccounts;
-    	Session* FSessionDS;
+    	Accounts* FAccounts = nullptr;
+    	Session* FSessionDS = nullptr;
     	std::mutex mtx; 
     	std::thread thServer;    	
     	std::vector<std::thread> threads;
@@ -169,7 +175,7 @@ class vsServer: public TaskListAttachBase {
 		
 		void thStartListening()  { thServer = std::thread(&vsServer::StartListening, this); }	
 		
-	    vsServer(int port);
+	    explicit vsServer(int port);
 	    ~vsServer();
 	    
 	    void start();
@@ -205,7 +211,7 @@ class vsServer: public TaskListAttachBase {
 		void setAccounts(Accounts* _accounts) { FAccounts = _accounts;}		
 		Accounts* getAccount() { return FAccounts;}
 		
-		int getClientSocket() { 
+		int getClientSocket() const {
 			return clientSocket;
 		}
 		
@@ -213,7 +219,7 @@ class vsServer: public TaskListAttachBase {
 			clHandler = _handler;
 		}
 		
-		int getClientHandler() { 
+		int getClientHandler() const {
 			return clHandler;
 		}
 		

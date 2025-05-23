@@ -34,6 +34,7 @@ void ServerHttp::StartExecute() {
     // Определяем маршруты в отдельной функции
     define_routes(app);
 
+//    app.loglevel(crow::LogLevel::Error);
     app.loglevel(crow::LogLevel::Debug);
     app.port(18080).multithreaded().run();
 }
